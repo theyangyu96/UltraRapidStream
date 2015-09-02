@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ultra Rapid Stream</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    html, body{
+      background-image: url("http://na.leagueoflegends.com/sites/default/files/styles/scale_xlarge/public/upload/awn53kv.jpg?itok=yj6DliR_");
+      background-size: 100% 100%;
+      height: 100%;
+      margin: 0;
+    }
+    #big {
+      height: 100%;
+      max-width: 800px;
+      margin: auto;
+      opacity: .85;
+    }
+    #victory{
+      font-size: 50px;
+      font-weight: 600;
+      text-align: center;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    #main {
+      overflow: hidden;
+      background-color: #bac2cf;
+      max-height: 240px;
+    }
+    #profileContain {
+      float: left;
+      width: 40%;
+      max-width: 240px;
+    }
+    #championProfile {
+      width: 100%;
+      height: 100%;
+    }
+    #info {
+      float: right;
+      width: 60%;
+      min-width: calc(100% - 240px);
+    }
+    #score, #build{
+      padding-top: 10px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 40px;
+
+    }
+    #summonerNickname {
+      background-color: #8be4e5;
+      font-size: 50px;
+      text-align: center;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script>
+    var testTime = '1428259800';
+    var testIndex = 0;
+
+    var keystring = 'api_key=b4313b2a-312a-4933-9734-581119ee69d9';
+
+    var wingood, winbad, losegood, losebad;
+    
+    function loadWords() {
+
+      wingood = new Array;
+      $.get('txt/wingood.txt', function(data){
+              wingood = data.split('\n');
+              console.log(wingood);
+          });
+
+      winbad = new Array;
+      $.get('txt/winbad.txt', function(data){
+              winbad = data.split('\n');
+              });
+
+      losegood = new Array;
+      $.get('txt/losegood.txt', function(data){
+              losegood = data.split('\n');
+              });
+
+      losebad = new Array;
+      $.get('txt/losebad.txt', function(data){
+              losebad = data.split('\n');
+              });
+    }
+
+    function nick(kda, winner) {
+      if (winner) {
+        if (kda> 1) {
+          return wingood[Math.floor(Math.random()*wingood.length)];
+        } else {
+          return winbad[Math.floor(Math.random()*winbad.length)];
+        }
+      }
+      else {
+        if (kda > 1) {
+          return losegood[Math.floor(Math.random()*losegood.length)];
+        } else {
+          return losebad[Math.floor(Math.random()*losebad.length)];
+        }
+      }
+    }
+
+    function getMatches(beginDate) {
+      var jsonhttp = null;
+
+      var url = 'https://na.api.pvp.net/api/lol/na/v4.1/game/ids?beginDate=<beginDate>&'.replace("<beginDate>", beginDate) + keystring;
+      jsonhttp = new XMLHttpRequest();
+      jsonhttp.open("GET", url, false);
+      jsonhttp.send();
+      matches = JSON.parse(jsonhttp.responseText);
+      return matches;
+    }
+
+    function getGameData(matchID) {
+      var gameRequst = null;
+      gameRequest = new XMLHttpRequest();
+      var gameurl = "https://na.api.pvp.net/api/lol/na/v2.2/match/"+matchID+"?"+keystring;
+      gameRequest.open("GET", gameurl, false); 
+      gameRequest.send();
+      return JSON.parse(gameRequest.responseText);
+    }
+
+    function getAllPlayers(game) {
+      return game.participants;
+    }
+
+    function getPlayerStat(player) {
+      return player.stats;
+    }
+    
+    function playerObject(player) {
+      var playerStat = getPlayerStat(player);
+      this.kills   = playerStat.kills;
+      this.deaths  = playerStat.deaths;
+      this.assists = playerStat.assists;
+      this.winner  = playerStat.winner;
+      this.cs      = playerStat.minionsKilled;
+
+      var championNameURL = "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion/"+player.championId+"?api_key=71a53639-8f0d-4698-b9d3-f9426b0ec72c";
+      var nameRequest = new XMLHttpRequest();
+      nameRequest.open("GET", championNameURL, false);
+      nameRequest.send();
+      var championName = JSON.parse(nameRequest.responseText).name;
+      championName = championName.toLowerCase();
+      championName = championName.charAt(0).toUpperCase() + championName.slice(1);
+      if (championName == "Wukong")
+        championName = "MonkeyKing";
+      else if (championName == "Fiddlesticks") 
+        championName = "FiddleSticks";
+      else if (championName == "Master yi") 
+        championName = "MasterYi";
+      else if (championName == "Jarvan iv")
+        championName = "JarvanIV";
+      else if (championName == "Lee sin")
+        championName = "LeeSin";
+      else if (championName == "Twisted fate")
+        championName = "TwistedFate";
+      else if (championName == "Xin zhao")
+        championName = "XinZhao";
+      else if (championName == "Dr. mundo")
+        championName = "DrMundo";
+      else if (championName == "Kog'maw")
+        championName = "KogMaw";
+      else if (championName == "Miss fortune")
+        championName = "MissFortune";
+      else if (championName == "Rek'sai")
+        championName = "RekSai";
+      this.championPortraitURL = "http://ddragon.leagueoflegends.com/cdn/5.6.1/img/champion/"+championName.replace("'","").replace(" ", "")+".png"
+      this.getKDAcs = function() {
+          return this.kills+"/"+this.deaths+"/"+this.assists;
+      }
+      this.Nickname = function() {
+          return nick(this.kills/this.deaths, this.winner)+" "+JSON.parse(nameRequest.responseText).name;
+      }
+    }
+    function getCurrentEpochTime() {
+      var today = new Date();
+      var dd = today.getDate();
+      var mm = today.getMonth()+1; //January is 0, should be 1
+      var yyyy = today.getFullYear();
+      var h = today.getHours();
+      var m = today.getMinutes()-10;
+      if(dd < 10) {
+          dd = '0' + dd;
+      }
+      if(mm < 10) {
+          mm = '0' + mm;
+      } 
+      if (mm < 0) {
+        mm += 60;
+      }
+      today = new Date(mm+'/'+dd+'/'+yyyy+" "+h+":"+m);
+      var epochToday = today.getTime() - today.getTime() % 300000;
+      return epochToday/1000;
+    }
+    function shuffle(o){
+      for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+      return o;
+    }
+    function createName(player) {
+
+    }
+
+    var globalPlayer;
+    var gameBin;
+    var index = -1;
+    var numPlayer = -1;
+    var sameGame = false;
+    var allPlayers;  
+    function f1 () {
+      var et = getCurrentEpochTime();
+      gameBin = getMatches(et);
+      if (index == gameBin.length-1) {
+        index = -1;
+        f1();
+      } else {
+        index+=1;
+        sameGame= false;
+        f2(getGameData(gameBin[index]));
+      }
+    }
+
+    function f2(singleGame) {
+      if (!sameGame) {
+      allPlayers = shuffle(getAllPlayers(singleGame));
+      sameGame = true;
+      }
+      if (numPlayer==allPlayers.length-1) {
+        numPlayer=-1;
+        f1();
+      } else {
+        numPlayer+=1;
+        setTimeout( function() {f3(allPlayers[numPlayer], singleGame)}, 1000);
+      }
+    }
+    
+    function f3(singlePlayer, singleGame) {
+      update(singlePlayer);
+      var player = new playerObject(singlePlayer);
+      console.log(player.Nickname());
+      f2(singleGame);
+    }
+    loadWords();
+    f1();
+
+    function update(singleplayer) {
+      var player = new playerObject(singleplayer);
+      $("#championProfile").attr("src", player.championPortraitURL);
+      $("#score").html(player.getKDAcs());
+      $("#build").html(""+player.cs+"cs");
+      $("#build").html();
+      $("#summonerNickname").html(player.Nickname());
+      if(player.winner){
+        $("#victory").html("Victory");
+        $("#victory").css("background-color", "#72ee88");
+      } else {
+        $("#victory").html("Second Place");
+        $("#victory").css("background-color", "#dc5e5b");
+      }
+    }
+  </script>
+  <div id="big">
+    <div id="victory"></div>
+    <div id="main">
+      <div id="profileContain"><img id="championProfile" src=""></img></div>
+      <div id="info">
+        <div id="score"></div>
+        <div id="build"></div>
+      </div>
+    </div>
+    <div id="summonerNickname"></div>
+    <audio controls autoplay loop>
+      <source src="mp3/urf_theme.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+</body>
+</html>
